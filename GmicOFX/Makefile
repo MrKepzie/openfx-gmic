@@ -6,5 +6,6 @@ VPATH = ../gmic/src
 
 include ../Makefile.master
 
-CXXFLAGS += -Dgmic_gimp
+CXXFLAGS += -Dgmic_gimp -Dcimg_display=0 -Dgmic_build
+CXXFLAGS += -I../gmic/src
 

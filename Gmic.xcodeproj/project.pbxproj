@@ -90,7 +90,6 @@
 		AC6861B61A160DFB0092572C /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../gmic/src/Makefile; sourceTree = "<group>"; };
 		ACD58DAB1A16070600B65F19 /* GmicGimpParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GmicGimpParser.cpp; sourceTree = "<group>"; };
 		ACD58DAC1A16070600B65F19 /* GmicGimpParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GmicGimpParser.h; sourceTree = "<group>"; };
-		ACD58DAD1A16070600B65F19 /* GmicInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = GmicInfo.plist; sourceTree = "<group>"; };
 		ACD58DAE1A16070600B65F19 /* GmicOFX.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GmicOFX.cpp; sourceTree = "<group>"; };
 		D716FF2D1A1403FA00BFAFAF /* Gmic.ofx.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Gmic.ofx.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -231,7 +230,6 @@
 				AC6861B61A160DFB0092572C /* Makefile */,
 				ACD58DAB1A16070600B65F19 /* GmicGimpParser.cpp */,
 				ACD58DAC1A16070600B65F19 /* GmicGimpParser.h */,
-				ACD58DAD1A16070600B65F19 /* GmicInfo.plist */,
 				ACD58DAE1A16070600B65F19 /* GmicOFX.cpp */,
 			);
 			path = GmicOFX;
@@ -419,7 +417,7 @@
 					"$(OFX_PATH)/Examples/include",
 					"$(GMIC_PATH)/src",
 				);
-				INFOPLIST_FILE = GmicOFX/GmicInfo.plist;
+				INFOPLIST_FILE = GmicOFX/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/OFX/Plugins/$(PROJECT_NAME)";
 				PRODUCT_NAME = Gmic.ofx;
 				WRAPPER_EXTENSION = bundle;
@@ -448,7 +446,7 @@
 					"$(OFX_PATH)/Examples/include",
 					"$(GMIC_PATH)/src",
 				);
-				INFOPLIST_FILE = GmicOFX/GmicInfo.plist;
+				INFOPLIST_FILE = GmicOFX/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/OFX/Plugins/$(PROJECT_NAME)";
 				PRODUCT_NAME = Gmic.ofx;
 				WRAPPER_EXTENSION = bundle;
