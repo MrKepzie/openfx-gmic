@@ -1,0 +1,6 @@
+[submodule "openfx"]
+	path = openfx
+	url = https://github.com/devernay/openfx
+[submodule "gmic"]
+	path = gmic
+	url = http://git.code.sf.net/p/gmic/source
