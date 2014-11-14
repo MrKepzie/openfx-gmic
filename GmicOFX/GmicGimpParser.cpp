@@ -218,7 +218,7 @@ struct GmicTreeNode::GmicTreeNodePrivate
     std::string name;
     std::string command;
     std::string previewCommand;
-    std::string arguments;
+    std::list<std::string> arguments;
     
     double previewFactor;
     
@@ -359,7 +359,7 @@ GmicTreeNode::setGmicPreviewCommand(const std::string& pCommand)
     _imp->previewCommand = pCommand;
 }
 
-const std::string&
+const std::list<std::string>&
 GmicTreeNode::getGmicArguments() const
 {
     return _imp->arguments;
@@ -368,13 +368,14 @@ GmicTreeNode::getGmicArguments() const
 void
 GmicTreeNode::setGmicArguments(const std::string& args)
 {
-    _imp->arguments = args;
+    _imp->arguments.clear();
+    _imp->arguments.push_back(args);
 }
 
 void
 GmicTreeNode::appendGmicArguments(const std::string& args)
 {
-    _imp->arguments.append(args);
+    _imp->arguments.push_back(args);
 }
 
 double
@@ -639,7 +640,7 @@ GmicGimpParser::parse(std::string* errors,bool tryNetUpdate,const char* locale)
         locale_[0] = 'e'; locale_[1] = 'n'; locale_[2] = 0;
     }
     
-    GmicTreeNode* lastProcessedNode = 0;
+    GmicTreeNode* lastFilterNode = 0;
     
     for (const char *data = gmic_additional_commands; *data; ) {
         char *_line = line;
@@ -714,7 +715,6 @@ GmicGimpParser::parse(std::string* errors,bool tryNetUpdate,const char* locale)
                         assert(p);
                         node->setParent(p);
                         parent[level] = node;
-                        lastProcessedNode = node;
                         
                     } else { // 1st-level folder.
                         
@@ -739,7 +739,6 @@ GmicGimpParser::parse(std::string* errors,bool tryNetUpdate,const char* locale)
                             topLevelNode->setName(entryName);
                             _imp->firstLevelEntries.push_back(topLevelNode);
                             parent[level] = topLevelNode;
-                            lastProcessedNode = topLevelNode;
                         }
                     }
                     ++level;
@@ -779,8 +778,12 @@ GmicGimpParser::parse(std::string* errors,bool tryNetUpdate,const char* locale)
                         _imp->firstLevelEntries.push_back(node);
                     }
                     node->setGmicCommand(command);
-                    node->setGmicArguments(arguments);
-                    lastProcessedNode = node;
+                    
+                    std::string stdArgs(arguments);
+                    if (!stdArgs.empty()) {
+                        node->setGmicArguments(stdArgs);
+                    }
+                    lastFilterNode = node;
                     
                     ++_imp->nPlugins;
                     
@@ -809,13 +812,15 @@ GmicGimpParser::parse(std::string* errors,bool tryNetUpdate,const char* locale)
                 }
             }
         } else { // Line is the continuation of an entry. if (*_line!=':') {
-            if (lastProcessedNode && !lastProcessedNode->getGmicArguments().empty()) {
+            if (lastFilterNode) {
                 cimg::strpare(++_line,' ',false,true);
                 
-                std::string toAppend(_line);
-                assert(lastProcessedNode);
+                std::string toAppend;
+                for (std::size_t i = 0; i < std::strlen(_line) ; ++i) {
+                    toAppend.push_back(_line[i]);
+                }
                 
-                lastProcessedNode->appendGmicArguments(toAppend);
+                lastFilterNode->appendGmicArguments(toAppend);
             }
         }
     } //for (const char *data = gmic_additional_commands; *data; ) {
@@ -836,34 +841,7 @@ GmicGimpParser::getNPlugins() const
     return _imp->nPlugins;
 }
 
-static void printRecursive(GmicTreeNode* node,int nTabs)
-{
-    std::string spaces;
-    for (int i = 0; i < nTabs; ++i) {
-        spaces.push_back(' ');
-    }
-    std::cout << spaces << node->getName() << std::endl;
-    if (!node->getGmicCommand().empty()) {
-        std::cout << spaces << "  COMMAND: " << node->getGmicCommand() << std::endl;
-        std::cout << spaces << "  ARGS: " << node->getGmicArguments() << std::endl;
-        if (!node->getGmicPreviewCommand().empty()) {
-            std::cout << spaces << "  PREVIEW COMMAND: " << node->getGmicPreviewCommand() << std::endl;
-            std::cout << spaces << "  PREVIEW FACTOR: " << node->getPreviewZoomFactor() << std::endl;
-        }
-    }
-    const std::list<GmicTreeNode*>& children = node->getChildren();
-    for (std::list<GmicTreeNode*>::const_iterator it = children.begin(); it != children.end(); ++it) {
-        printRecursive(*it,nTabs + 4);
-    }
-}
 
-void
-GmicGimpParser::printTree()
-{
-    for (std::list<GmicTreeNode*>::iterator it = _imp->firstLevelEntries.begin(); it != _imp->firstLevelEntries.end(); ++it) {
-        printRecursive(*it,4);
-    }
-}
 
 void
 GmicTreeNode::parseParametersFromGmicArgs()
@@ -872,8 +850,10 @@ GmicTreeNode::parseParametersFromGmicArgs()
         
         char argument_name[256] = { 0 }, _argument_type[32] = { 0 }, argument_arg[65536] = { 0 };
         
-        const char* argument = _imp->arguments.c_str();
-        for (; *argument; ) {
+        
+        for (std::list<std::string>::const_iterator it = _imp->arguments.begin(); it != _imp->arguments.end(); ++it) {
+            
+            const char* argument = it->c_str();
             
             int err = std::sscanf(argument,"%4095[^=]=%4095[ a-zA-Z_](%65535[^)]",
                                   argument_name,_argument_type,&(argument_arg[0]=0));
@@ -887,8 +867,8 @@ GmicTreeNode::parseParametersFromGmicArgs()
                                            argument_name,_argument_type,argument_arg);
             }
             if (err>=2) {
-                argument += std::strlen(argument_name) + std::strlen(_argument_type) + std::strlen(argument_arg) + 3;
-                if (*argument) ++argument;
+               // argument += std::strlen(argument_name) + std::strlen(_argument_type) + std::strlen(argument_arg) + 3;
+               // if (*argument) ++argument;
                 cimg::strpare(argument_name,' ',false,true);
                 cimg::strpare(argument_name,'\"',true);
                 cimg::strunescape(argument_name);

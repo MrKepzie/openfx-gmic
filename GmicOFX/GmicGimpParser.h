@@ -339,7 +339,7 @@ public:
     const std::string& getGmicPreviewCommand() const;
     void setGmicPreviewCommand(const std::string& pCommand);
     
-    const std::string& getGmicArguments() const;
+    const std::list<std::string>& getGmicArguments() const;
     void setGmicArguments(const std::string& args);
     void appendGmicArguments(const std::string& args);
     
@@ -395,11 +395,7 @@ public:
      * after parse() has been called.
      **/
     int getNPlugins() const;
-    
-    /**
-     * @brief For debug purposes.
-     **/
-    void printTree();
+
     
 private:
     
