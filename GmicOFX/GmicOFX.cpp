@@ -881,6 +881,33 @@ static void describePluginInContext(int nth,OfxImageEffectHandle effectHandle,Of
     
 }
 
+static bool fetchImage(int nth,PluginInstance* instance,const std::string& clipName,OfxTime time,OfxPropertySetHandle* imageHandle)
+{
+    std::map<std::string,ClipInstance>::const_iterator found = instance->clips.find(clipName);
+    assert(found != instance->clips.end());
+    OfxStatus stat = gEffectHost[nth]->clipGetImage(found->second.clipHandle, time, NULL, imageHandle);
+    if (stat == kOfxStatFailed) {
+        return false; // not an error, fetched images out of range/region, assume black and transparent
+    } else {
+        OFX::throwSuiteStatusException(stat);
+    }
+    return true;
+}
+
+void renderAction(int nth,OfxImageEffectHandle handle,OfxTime time, const OfxPointD& renderScale,const OfxRectI& renderWindow)
+{
+    PluginInstance* instance = retrievePluginInstancePointer(nth, handle);
+    
+    OfxPropertySetHandle srcImgHandle,dstImgHandle;
+    bool gotDst = fetchImage(nth, instance, kOfxImageEffectOutputClipName, time, &dstImgHandle);
+    bool gotSrc = fetchImage(nth, instance, kOfxImageEffectSimpleSourceClipName, time, &srcImgHandle);
+    
+    if (!gotSrc || ! gotDst) {
+        OFX::throwSuiteStatusException(kOfxStatFailed);
+    }
+    
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // The main function
 static OfxStatus
@@ -1076,6 +1103,8 @@ pluginMain(int nth, const char *action, const void *rawHandle, OfxPropertySetHan
             // get the interactive render status
             int interactiverenderstatus;
             gPropHost[nth]->propGetInt(inArgs, kOfxImageEffectPropInteractiveRenderStatus, 0, &interactiverenderstatus);
+            
+            renderAction(nth,handle,time,renderScale,renderWindow);
             
             st = kOfxStatOK;
         }
