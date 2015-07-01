@@ -1,8 +1,11 @@
 SUBDIRS = GmicOFX
 
-all: subdirs
+all: gmicsrc subdirs
 
-.PHONY: subdirs clean $(SUBDIRS)
+.PHONY: gmicsrc subdirs clean $(SUBDIRS)
+
+gmicsrc:
+	$(MAKE) -C gmic/src CImg.h gmic_def.h
 
 subdirs: $(SUBDIRS)
 
